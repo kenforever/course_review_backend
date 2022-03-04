@@ -2,6 +2,8 @@
 
 ## 安裝 installation
 
+在 config.json 填入相對應資料後，安裝所需需求。
+fill in config.json and install requirements.
 
 ` pip install -r requirements.txt`
 
