@@ -9,6 +9,14 @@ def get_semesters_info(uid,password,target):
     headers = {"referer":"https://nportal.ntut.edu.tw/index.do"} 
     ac = {'muid':uid, 'mpassword':password}
     response = session.post('https://nportal.ntut.edu.tw/login.do',data = ac, headers=headers)
+    # try:
+    #     fail = response.text
+    #     soup = bs(fail,"html.parser")
+    #     h3 = str(soup.find_all('h3')).split(">")[1].split("<")[0]
+    #     if h3 == "登入失敗":
+    #         return {"status":"failure","reason":"wrong_password"}
+    # except:
+    #     pass
     Cookies = session.cookies.get_dict()
 
     session = requests.Session()
@@ -36,5 +44,9 @@ def get_semesters_info(uid,password,target):
         sem = row[-2]
         semester = [year,sem]
         semesters.append(semester)
+    
+    aps_cookies = str(TCookie)
+    
+    result = {"status":"success","semesters":semesters,"aps_cookies":aps_cookies}
         
-    return semesters
+    return result

@@ -5,15 +5,12 @@ from datetime import timedelta
 from datetime import timezone
 from flask_cors import CORS
 from flask_cors import cross_origin
-import requests
-import sqlite3
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import create_refresh_token
-from flask_jwt_extended import unset_jwt_cookies
+from uuid import uuid5
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    jwt_refresh_token_required, create_refresh_token,
+    get_jwt_identity
+)
 import base64
 import json
 from database_access import *
@@ -42,7 +39,7 @@ def home():
     return "{flag:this_is_not_a_flag}"
 
 @app.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True)
+@jwt_refresh_token_required
 def refresh():
     identity = get_jwt_identity()
     access_token = create_access_token(identity=identity)
@@ -60,10 +57,18 @@ def get_sem_info():
         return jsonify({"status":"failure","reason":"invalid_request"})
     
     try:
+        print(uid,password)
         sem_info = get_semesters_info(uid,password,uid)
+        print(sem_info)
     except Exception as e:
         print(e)
-        return jsonify({"status":"failure","reason":"invalid_request"})
+        return jsonify({"status":"failure","reason":"cant_get_info"})
+
+    try:
+        if sem_info["status"] == "failure":
+            return jsonify(sem_info)
+    except:
+        pass
 
     token_data = {"uid":uid}
     access_token = create_access_token(identity=token_data)
@@ -72,7 +77,7 @@ def get_sem_info():
 
 @app.route('/comment/add', methods=['POST'])
 @cross_origin()
-@jwt_required()
+@jwt_required
 def comment_add():
     try:
         content = request.get_json()
@@ -84,14 +89,25 @@ def comment_add():
     except Exception as e:
         print(e)
         return jsonify({"status":"failure","reason":"invalid_request"})
-    result = add_comment(comment,uid,professer,course_code,rating)
-    print(result)
-    return_data = jsonify({"status":result})
-    return return_data
+
+    if rating > 5 or rating < 0:
+        return jsonify({"status":"failure","reason":"invalid_rating"})
+    
+    try:    
+        result = add_comment(comment,uid,professer,course_code,rating)
+    except Exception as e:
+        print(e)
+        return jsonify({"status":"failure","reason":"cant_insert"})
+
+    if result == "success": 
+        return jsonify({"status":"success"})
+    else:
+        return jsonify({"status":"failure","reason":result})
+
 
 @app.route('/comment/get', methods=['POST'])
 @cross_origin()
-@jwt_required()
+@jwt_required
 def comment_get():
     try:
         content = request.get_json()
