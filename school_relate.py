@@ -51,7 +51,7 @@ def get_semesters_info(uid,password):
     
     aps_cookies = str(TCookie)
     
-    result = {"status":"success","semesters":semesters,"aps_cookies":aps_cookies}
+    result = {"semesters":semesters,"aps_cookies":aps_cookies}
         
     return result
 
@@ -178,4 +178,9 @@ def courses_studied(uid,cookie,year,sem):
     course_code = list(dict.fromkeys(course_code))
     return course_code
 
-    
+def course_studied_check(uid,course_code,sem,aps_cookies,year):
+    courses_studied_codes = courses_studied(uid,aps_cookies,year,sem)
+    if course_code in courses_studied_codes:
+        return True
+    else:
+        return False

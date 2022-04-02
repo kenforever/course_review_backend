@@ -51,41 +51,18 @@ def add_comment(comment,uid,professer,course_code,rating):
             return("duplicate")
     except Exception as e:
         print(e)
-        return(e)
+        return(str(e))
 
-def get_comments_by_course_code(course_code):
+def get_comments(type,target):
     try:
         conn = sqlite3.connect('./data/database.db')
         c = conn.cursor()
-        c.execute("SELECT * FROM main WHERE course_code=?",(course_code,))
-        result = c.fetchall()
-        conn.close()
-        if result == []:
-            return("empty")
-        return(result)
-    except Exception as e:
-        print(e)
-        return(e)
-
-def get_comments_by_professer(professer):
-    try:
-        conn = sqlite3.connect('./data/database.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM main WHERE professer=?",(professer,))
-        result = c.fetchall()
-        conn.close()
-        if result == []:
-            return("empty")
-        return(result)
-    except Exception as e:
-        print(e)
-        return(e)
-
-def get_comments_by_uid(uid):
-    try:
-        conn = sqlite3.connect('./data/database.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM main WHERE uid=?",(uid,))
+        if type == "course_code":
+            c.execute("SELECT * FROM main WHERE course_code=?",(target,))
+        elif type == "professer":
+            c.execute("SELECT * FROM main WHERE professer=?",(target,))
+        elif type == "uid":
+            c.execute("SELECT * FROM main WHERE uid=?",(target,))
         result = c.fetchall()
         conn.close()
         if result == []:
