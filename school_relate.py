@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup as bs
@@ -13,21 +14,24 @@ def get_semesters_info(uid,password):
     headers = {"referer":"https://nportal.ntut.edu.tw/index.do"} 
     ac = {'muid':uid, 'mpassword':password}
     response = session.post('https://nportal.ntut.edu.tw/login.do',data = ac, headers=headers)
-    # try:
-    #     fail = response.text
-    #     soup = bs(fail,"html.parser")
-    #     h3 = str(soup.find_all('h3')).split(">")[1].split("<")[0]
-    #     if h3 == "登入失敗":
-    #         return {"status":"failure","reason":"wrong_password"}
-    # except:
-    #     pass
+    try:
+        fail = response.text
+        soup = bs(fail,"html.parser")
+        h3 = str(soup.find_all('h3')).split(">")[1].split("<")[0]
+        if h3 == "登入失敗":
+            return {"status":"failure","reason":"wrong_password"}
+    except:
+        pass
     Cookies = session.cookies.get_dict()
 
     session = requests.Session()
     response = session.get('https://nportal.ntut.edu.tw/ssoIndex.do?apUrl=https://aps.ntut.edu.tw/course/tw/courseSID.jsp&apOu=aa_0010-&sso=true',cookies=Cookies)
     soup = bs(response.text,"html.parser")
-    value = soup.find('input', {'name': 'sessionId'}).get('value')
-
+    try:
+        value = soup.find('input', {'name': 'sessionId'}).get('value')
+    except Exception as e:
+        print(e)
+        return {"status":"failure","reason":"wrong_password"}
     response = session.get('https://aps.ntut.edu.tw/course/tw/courseSID.jsp?sessionId='+value+'&reqFrom=Portal&userid='+uid+'&userType=50')
     TCookie = session.cookies.get_dict()
 
@@ -49,7 +53,7 @@ def get_semesters_info(uid,password):
         semester = [year,sem]
         semesters.append(semester)
     
-    aps_cookies = str(TCookie)
+    aps_cookies = json.dumps(TCookie)
     
     result = {"semesters":semesters,"aps_cookies":aps_cookies}
         
@@ -143,7 +147,10 @@ def Exchange(target,year,sem):
 def file_create(cookie,year,sem,target):
     
     session = requests.Session()
-    TCookie = cookie
+    print(cookie)
+    TCookie = json.loads(cookie)
+    print(TCookie)
+    print(type(TCookie))
 
     response = session.get('https://aps.ntut.edu.tw/course/tw/Select.jsp?format=-2&code='+target+"&year="+year+"&sem="+sem,cookies = TCookie)
     TCookie = session.cookies.get_dict()
@@ -180,6 +187,8 @@ def courses_studied(uid,cookie,year,sem):
 
 def course_studied_check(uid,course_code,sem,aps_cookies,year):
     courses_studied_codes = courses_studied(uid,aps_cookies,year,sem)
+    os.remove("./temps/"+uid)
+    os.remove("./temps/"+uid+"_code")
     if course_code in courses_studied_codes:
         return True
     else:

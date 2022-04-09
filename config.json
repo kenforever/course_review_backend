@@ -1,5 +1,0 @@
-{
-    "admin_uid":"type your student id here",
-    "JWT_SECRET_KEY":"some_super_secret_key",
-    "mongo_url":"mongodb://localhost:27017"
-}
