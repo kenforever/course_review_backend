@@ -10,3 +10,4 @@ python-dotenv==0.20.0
 python_jose==3.3.0
 requests==2.27.1
 gunicorn
+python-multipart
